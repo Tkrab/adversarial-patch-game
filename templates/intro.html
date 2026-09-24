@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patch Game Rules</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="lang-switcher" aria-label="Language">
+    <button type="button" class="lang-btn" data-lang="en">EN</button>
+    <button type="button" class="lang-btn" data-lang="zh">中文</button>
+  </div>
+
+  <main class="intro-page">
+    <section class="panel intro-panel">
+      <h1 data-i18n="rulesTitle">Patch Game Rules</h1>
+      <p class="intro-lead" data-i18n="introLead">
+        Place adversarial patches on an image and try to fool the ResNet34 classifier.
+        Reach the target score within limited submissions to clear the level.
+      </p>
+
+      <h2 data-i18n="howToPlay">How to play</h2>
+      <ol class="rules-list">
+        <li data-i18n="rule1">You are offered 6 random patches. Every deal includes all patch classes and all patch sizes (32 / 48 / 64).</li>
+        <li data-i18n="rule2">Drag one patch from the bottom onto the image, adjust its position, then click Classify.</li>
+        <li id="rule3" data-i18n="rule3">You have 3 submissions in total.</li>
+        <li data-i18n="rule4">After each classification, a new random base image and a new set of 6 patches are dealt.</li>
+        <li id="rule5" data-i18n="rule5">If your total score is greater than 95 after all submissions, you win.</li>
+      </ol>
+
+      <h2 data-i18n="successVsFailure">Success vs failure</h2>
+      <p data-i18n="successVsFailureDesc">
+        After classification, compare the patch-class confidence with the original-class confidence on the patched image:
+      </p>
+      <ul class="rules-list compact">
+        <li data-i18n="successRule">Success: patch-class confidence &gt; original-class confidence</li>
+        <li data-i18n="failureRule">Failure: otherwise</li>
+      </ul>
+
+      <h2 data-i18n="scoring">Scoring</h2>
+      <p data-i18n="scoringFormula">Each classification scores:</p>
+      <p class="formula"><code data-i18n="formula">score = 0.3 × patch-class confidence(%) + size bonus (success only)</code></p>
+      <ul class="rules-list compact">
+        <li data-i18n="bonusOnlySuccess">Size bonus is added only on success.</li>
+        <li data-i18n="bonus32">Patch size 32: +20 bonus</li>
+        <li data-i18n="bonus48">Patch size 48: +10 bonus</li>
+        <li data-i18n="bonus64">Patch size 64: +0 bonus</li>
+        <li data-i18n="bonusFail">On failure, no size bonus is added.</li>
+      </ul>
+      <p id="totalSum" data-i18n="totalSum">Your total is the sum of all submission scores. Target to clear the level: 80 points.</p>
+
+      <div class="intro-actions">
+        <a class="btn primary" href="{{ url_for('play') }}" data-i18n="startGame">Start Game</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.INTRO_CONFIG = {
+      maxSubmissions: {{ max_submissions }},
+      targetScore: {{ target_score }},
+    };
+  </script>
+  <script src="{{ url_for('static', filename='i18n.js') }}"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const cfg = window.INTRO_CONFIG || {};
+      const rule3 = document.getElementById("rule3");
+      const rule5 = document.getElementById("rule5");
+      const totalSum = document.getElementById("totalSum");
+      if (rule3) rule3.textContent = I18N.t("rule3", { max: cfg.maxSubmissions || 3 });
+      if (rule5) rule5.textContent = I18N.t("rule5", { target: cfg.targetScore || 95 });
+      if (totalSum) totalSum.textContent = I18N.t("totalSum", { target: cfg.targetScore || 95 });
+      document.addEventListener("languagechange", () => {
+        if (rule3) rule3.textContent = I18N.t("rule3", { max: cfg.maxSubmissions || 3 });
+        if (rule5) rule5.textContent = I18N.t("rule5", { target: cfg.targetScore || 95 });
+        if (totalSum) totalSum.textContent = I18N.t("totalSum", { target: cfg.targetScore || 95 });
+      });
+    });
+  </script>
+</body>
+</html>

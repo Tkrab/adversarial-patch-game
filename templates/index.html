@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patch Drag Classification</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="lang-switcher" aria-label="Language">
+    <button type="button" class="lang-btn" data-lang="en">EN</button>
+    <button type="button" class="lang-btn" data-lang="zh">中文</button>
+  </div>
+
+  <header class="page-header">
+    <h1 data-i18n="pageTitle">Patch Drag Classification</h1>
+    <p id="headerSubtitle"></p>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <h2 data-i18n="imagePatch">Image + Patch</h2>
+      <div id="baseImageContainer" class="image-stage">
+        <img id="baseImage" src="{{ url_for('static', filename='base.png') }}?v={{ base_version }}" alt="base" draggable="false" />
+        <img id="patchPreview" src="" alt="patch" draggable="false" hidden />
+      </div>
+
+      <div class="patch-picker">
+        <p class="picker-label" data-i18n="offeredPatches">Offered patches (drag onto the image)</p>
+        <div id="patchOptions" class="patch-options" role="listbox" aria-label="Offered patches">
+          {% for patch in offered_patches %}
+          <button
+            type="button"
+            class="patch-option"
+            role="option"
+            data-class-name="{{ patch.class_name }}"
+            data-patch-size="{{ patch.patch_size }}"
+            data-preview="/{{ patch.preview }}"
+            aria-selected="false"
+          >
+            <img src="/{{ patch.preview }}" alt="{{ patch.class_name }} {{ patch.patch_size }}" />
+            <span>{{ patch.class_name }} · {{ patch.patch_size }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="controls">
+        <input type="hidden" id="className" value="" />
+        <input type="hidden" id="patchSize" value="" />
+        <input type="hidden" id="patchX" value="0" />
+        <input type="hidden" id="patchY" value="0" />
+        <button type="button" id="classifyBtn" class="btn primary" data-i18n="classify">Classify</button>
+        <button type="button" id="resetBtn" class="btn" disabled data-i18n="clearPatch">Clear patch</button>
+        <p id="attemptsInfo" class="attempts">
+          <span data-i18n="submissionsLeft">Submissions left: </span>
+          <strong id="remainingCount">{{ max_submissions - submissions_used }}</strong>
+          / {{ max_submissions }}
+        </p>
+        <p class="scoreboard">
+          <span data-i18n="round">Round: </span><strong id="roundScore">—</strong>
+          · <span data-i18n="total">Total: </span><strong id="totalScore">{{ '%.2f'|format(total_score) }}</strong>
+          · <span data-i18n="target">Target: </span><strong id="targetScore">{{ target_score|int }}</strong>
+        </p>
+      </div>
+      <p id="status" class="status" aria-live="polite" data-i18n="statusDrag">Drag a patch from below onto the image.</p>
+      <div id="finalResultBox" class="final-result-box" hidden>
+        <p id="finalResult" class="final-result"></p>
+        <div class="final-actions">
+          <button type="button" id="replayBtn" class="btn primary" data-i18n="playAgain">Play again</button>
+          <a class="btn" href="{{ url_for('intro') }}" data-i18n="backToRules">Back to rules</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="resultTitle">Classification Result</h2>
+      <div class="result-stage">
+        <img id="resultImage" alt="classification result" hidden />
+        <p id="resultPlaceholder" class="placeholder" data-i18n="resultPlaceholder">Click Classify to see the result image and Top-5</p>
+      </div>
+      <ul id="top5List" class="top5"></ul>
+    </section>
+  </main>
+
+  <script>
+    window.APP_CONFIG = {
+      maxSubmissions: {{ max_submissions }},
+      submissionsUsed: {{ submissions_used }},
+      totalScore: {{ total_score }},
+      targetScore: {{ target_score }},
+      baseLabel: {{ base_label|tojson }},
+    };
+  </script>
+  <script src="{{ url_for('static', filename='i18n.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
